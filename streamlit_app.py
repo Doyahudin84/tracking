@@ -1,27 +1,33 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import os
 
 # Fungsi untuk menyimpan dan membaca data pekerjaan
 def load_data():
-    try:
+    if os.path.exists('work_tracking.csv'):
         df = pd.read_csv('work_tracking.csv')
+        # Mengkonversi kolom tanggal menjadi tipe datetime
         df['Start Date'] = pd.to_datetime(df['Start Date'])
         df['End Date'] = pd.to_datetime(df['End Date'])
-    except FileNotFoundError:
+    else:
+        # Jika file CSV tidak ada, buat DataFrame kosong dengan kolom yang sesuai
         df = pd.DataFrame(columns=['Task', 'Start Date', 'End Date', 'Duration (Days)', 'Status'])
     return df
 
 def save_data(df):
+    # Pastikan file disimpan di direktori yang benar
     df.to_csv('work_tracking.csv', index=False)
-
+    
 # Judul Aplikasi
 st.title("Aplikasi Tracking Pekerjaan")
 
-# Menampilkan data pekerjaan
+# Menampilkan data pekerjaan dengan menggunakan `use_container_width`
 st.header("Daftar Pekerjaan")
 df = load_data()
-st.dataframe(df)
+
+# Menampilkan DataFrame dengan opsi responsif
+st.dataframe(df, use_container_width=True)
 
 # Formulir untuk menambahkan pekerjaan baru
 st.header("Tambah Pekerjaan Baru")
@@ -65,6 +71,6 @@ if edit_task:
 # Menambahkan Fitur untuk menampilkan pekerjaan yang masih berjalan
 st.header("Pekerjaan yang Belum Selesai")
 unfinished_tasks = df[df['Status'] == 'Belum Selesai']
-st.dataframe(unfinished_tasks)
 
- 
+# Menampilkan data pekerjaan yang belum selesai dengan responsif
+st.dataframe(unfinished_tasks, use_container_width=True)
