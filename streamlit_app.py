@@ -38,4 +38,4 @@ task = st.text_input("Nama Pekerjaan")
 start_date = st.date_input("Tanggal Mulai", min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31), key="start_date")
 
 # Setelah start_date dipilih, tampilkan end_date dengan rentang yang sesuai
-end_date = st.date_input("Tanggal Selesai", min_value=start_date, max_value=datetime.date(202)
+end_date = st.date_input("Tanggal Selesai", min_value=start_date, max_value=datetime.date(202))
