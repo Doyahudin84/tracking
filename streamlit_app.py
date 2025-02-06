@@ -42,7 +42,8 @@ if st.button("Simpan Pekerjaan"):
             'Status': status
         }
 
-        df = df.append(new_task, ignore_index=True)
+        new_task_df = pd.DataFrame([new_task])  # Membuat DataFrame baru untuk task
+        df = pd.concat([df, new_task_df], ignore_index=True)  # Menambahkan baris baru ke DataFrame
         save_data(df)
         st.success("Pekerjaan berhasil ditambahkan!")
     else:
