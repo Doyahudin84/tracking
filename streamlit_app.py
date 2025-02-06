@@ -1,151 +1,67 @@
 import streamlit as st
 import pandas as pd
-import math
-from pathlib import Path
+import datetime
 
-# Set the title and favicon that appear in the Browser's tab bar.
-st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
-)
+# Fungsi untuk menyimpan dan membaca data pekerjaan
+def load_data():
+    try:
+        df = pd.read_csv('work_tracking.csv')
+    except FileNotFoundError:
+        df = pd.DataFrame(columns=['Task', 'Start Time', 'End Time', 'Duration (Hours)', 'Status'])
+    return df
 
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
+def save_data(df):
+    df.to_csv('work_tracking.csv', index=False)
 
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
+# Judul Aplikasi
+st.title("Aplikasi Tracking Pekerjaan")
 
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
+# Menampilkan data pekerjaan
+st.header("Daftar Pekerjaan")
+df = load_data()
+st.dataframe(df)
 
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
+# Formulir untuk menambahkan pekerjaan baru
+st.header("Tambah Pekerjaan Baru")
+task = st.text_input("Nama Pekerjaan")
+start_time = st.time_input("Waktu Mulai")
+end_time = st.time_input("Waktu Selesai")
+status = st.selectbox("Status Pekerjaan", ['Belum Selesai', 'Selesai'])
 
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
+if st.button("Simpan Pekerjaan"):
+    if task and start_time and end_time:
+        # Menghitung durasi pekerjaan
+        start_datetime = datetime.datetime.combine(datetime.date.today(), start_time)
+        end_datetime = datetime.datetime.combine(datetime.date.today(), end_time)
+        duration = (end_datetime - start_datetime).total_seconds() / 3600  # dalam jam
 
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
-    )
+        # Menambahkan data pekerjaan baru
+        new_task = {
+            'Task': task,
+            'Start Time': start_datetime.strftime('%H:%M'),
+            'End Time': end_datetime.strftime('%H:%M'),
+            'Duration (Hours)': round(duration, 2),
+            'Status': status
+        }
 
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
+        df = df.append(new_task, ignore_index=True)
+        save_data(df)
+        st.success("Pekerjaan berhasil ditambahkan!")
+    else:
+        st.error("Harap isi semua kolom!")
 
-    return gdp_df
+# Fungsi untuk mengedit pekerjaan
+st.header("Edit Pekerjaan")
+edit_task = st.selectbox("Pilih Pekerjaan untuk Edit", df['Task'].tolist())
+if edit_task:
+    selected_task = df[df['Task'] == edit_task].iloc[0]
+    new_status = st.selectbox("Pilih Status Baru", ['Belum Selesai', 'Selesai'], index=['Belum Selesai', 'Selesai'].index(selected_task['Status']))
+    if st.button("Update Status"):
+        df.loc[df['Task'] == edit_task, 'Status'] = new_status
+        save_data(df)
+        st.success("Status pekerjaan telah diperbarui!")
 
-gdp_df = get_gdp_data()
-
-# -----------------------------------------------------------------------------
-# Draw the actual page
-
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
-
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
-
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+# Menambahkan Fitur untuk menampilkan pekerjaan yang masih berjalan
+st.header("Pekerjaan yang Belum Selesai")
+unfinished_tasks = df[df['Status'] == 'Belum Selesai']
+st.dataframe(unfinished_tasks)
