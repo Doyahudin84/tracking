@@ -7,7 +7,7 @@ def load_data():
     try:
         df = pd.read_csv('work_tracking.csv')
     except FileNotFoundError:
-        df = pd.DataFrame(columns=['Task', 'Start Time', 'End Time', 'Duration (Hours)', 'Status'])
+        df = pd.DataFrame(columns=['Task', 'Start Date', 'End Date', 'Duration (Hours)', 'Status'])
     return df
 
 def save_data(df):
@@ -24,22 +24,24 @@ st.dataframe(df)
 # Formulir untuk menambahkan pekerjaan baru
 st.header("Tambah Pekerjaan Baru")
 task = st.text_input("Nama Pekerjaan")
-start_time = st.time_input("Waktu Mulai")
-end_time = st.time_input("Waktu Selesai")
+start_date = st.date_input("Tanggal Mulai", datetime.date.today())
+start_time = st.time_input("Waktu Mulai", datetime.datetime.now().time())
+end_date = st.date_input("Tanggal Selesai", datetime.date.today())
+end_time = st.time_input("Waktu Selesai", datetime.datetime.now().time())
 status = st.selectbox("Status Pekerjaan", ['Belum Selesai', 'Selesai'])
 
 if st.button("Simpan Pekerjaan"):
-    if task and start_time and end_time:
+    if task and start_date and start_time and end_date and end_time:
         # Menghitung durasi pekerjaan
-        start_datetime = datetime.datetime.combine(datetime.date.today(), start_time)
-        end_datetime = datetime.datetime.combine(datetime.date.today(), end_time)
+        start_datetime = datetime.datetime.combine(start_date, start_time)
+        end_datetime = datetime.datetime.combine(end_date, end_time)
         duration = (end_datetime - start_datetime).total_seconds() / 3600  # dalam jam
 
         # Menambahkan data pekerjaan baru
         new_task = {
             'Task': task,
-            'Start Time': start_datetime.strftime('%H:%M'),
-            'End Time': end_datetime.strftime('%H:%M'),
+            'Start Date': start_datetime.strftime('%Y-%m-%d %H:%M'),
+            'End Date': end_datetime.strftime('%Y-%m-%d %H:%M'),
             'Duration (Hours)': round(duration, 2),
             'Status': status
         }
