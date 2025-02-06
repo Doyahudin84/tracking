@@ -25,9 +25,7 @@ st.dataframe(df)
 st.header("Tambah Pekerjaan Baru")
 task = st.text_input("Nama Pekerjaan")
 start_date = st.date_input("Tanggal Mulai", datetime.date.today())
-start_time = st.time_input("Waktu Mulai", datetime.datetime.now().time())
 end_date = st.date_input("Tanggal Selesai", datetime.date.today())
-end_time = st.time_input("Waktu Selesai", datetime.datetime.now().time())
 status = st.selectbox("Status Pekerjaan", ['Belum Selesai', 'Selesai'])
 
 if st.button("Simpan Pekerjaan"):
