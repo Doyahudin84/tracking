@@ -70,10 +70,22 @@ edit_task = st.selectbox("Pilih Pekerjaan untuk Edit", df['Task'].tolist())
 if edit_task:
     selected_task = df[df['Task'] == edit_task].iloc[0]
     new_status = st.selectbox("Pilih Status Baru", ['Belum Selesai', 'Selesai'], index=['Belum Selesai', 'Selesai'].index(selected_task['Status']))
-    
+
+    # Memeriksa apakah nilai tanggal mulai valid atau NaT
+    if pd.isna(selected_task['Start Date']):
+        new_start_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
+    else:
+        new_start_date = selected_task['Start Date'].date()
+
+    # Memeriksa apakah nilai tanggal selesai valid atau NaT
+    if pd.isna(selected_task['End Date']):
+        new_end_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
+    else:
+        new_end_date = selected_task['End Date'].date()
+
     # Input untuk mengedit tanggal mulai dan selesai
-    new_start_date = st.date_input("Edit Tanggal Mulai", value=selected_task['Start Date'].date(), min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31))
-    new_end_date = st.date_input("Edit Tanggal Selesai", value=selected_task['End Date'].date(), min_value=new_start_date, max_value=datetime.date(2025, 12, 31))
+    new_start_date = st.date_input("Edit Tanggal Mulai", value=new_start_date, min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31))
+    new_end_date = st.date_input("Edit Tanggal Selesai", value=new_end_date, min_value=new_start_date, max_value=datetime.date(2025, 12, 31))
     
     if st.button("Update Status dan Tanggal"):
         # Menghitung durasi pekerjaan yang telah diperbarui
