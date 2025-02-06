@@ -6,6 +6,8 @@ import datetime
 def load_data():
     try:
         df = pd.read_csv('work_tracking.csv')
+        df['Start Date'] = pd.to_datetime(df['Start Date'])
+        df['End Date'] = pd.to_datetime(df['End Date'])
     except FileNotFoundError:
         df = pd.DataFrame(columns=['Task', 'Start Date', 'End Date', 'Duration (Days)', 'Status'])
     return df
@@ -44,7 +46,7 @@ if st.button("Simpan Pekerjaan"):
 
         new_task_df = pd.DataFrame([new_task])  # Membuat DataFrame baru untuk task
         df = pd.concat([df, new_task_df], ignore_index=True)  # Menambahkan baris baru ke DataFrame
-        save_data(df)
+        save_data(df)  # Menyimpan data ke CSV
         st.success("Pekerjaan berhasil ditambahkan!")
     else:
         st.error("Harap isi semua kolom!")
@@ -64,3 +66,5 @@ if edit_task:
 st.header("Pekerjaan yang Belum Selesai")
 unfinished_tasks = df[df['Status'] == 'Belum Selesai']
 st.dataframe(unfinished_tasks)
+
+ 
