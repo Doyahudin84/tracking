@@ -38,7 +38,7 @@ task = st.text_input("Nama Pekerjaan")
 start_date = st.date_input("Tanggal Mulai", min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31), key="start_date")
 
 # Setelah start_date dipilih, tampilkan end_date dengan rentang yang sesuai
-end_date = st.date_input("Tanggal Selesai", min_value=start_date, max_value=datetime.date(2025, 12, 31))
+end_date = st.date_input("Tanggal Selesai", min_value=start_date, max_value=datetime.date(2025, 12, 31), key="end_date")
 
 status = st.selectbox("Status Pekerjaan", ['Belum Selesai', 'Selesai'])
 
@@ -66,13 +66,27 @@ if st.button("Simpan Pekerjaan"):
 # Fungsi untuk mengedit pekerjaan
 st.header("Edit Pekerjaan")
 edit_task = st.selectbox("Pilih Pekerjaan untuk Edit", df['Task'].tolist())
+
 if edit_task:
     selected_task = df[df['Task'] == edit_task].iloc[0]
     new_status = st.selectbox("Pilih Status Baru", ['Belum Selesai', 'Selesai'], index=['Belum Selesai', 'Selesai'].index(selected_task['Status']))
-    if st.button("Update Status"):
+    
+    # Input untuk mengedit tanggal mulai dan selesai
+    new_start_date = st.date_input("Edit Tanggal Mulai", value=selected_task['Start Date'].date(), min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31))
+    new_end_date = st.date_input("Edit Tanggal Selesai", value=selected_task['End Date'].date(), min_value=new_start_date, max_value=datetime.date(2025, 12, 31))
+    
+    if st.button("Update Status dan Tanggal"):
+        # Menghitung durasi pekerjaan yang telah diperbarui
+        duration = (new_end_date - new_start_date).days  # durasi dalam hari
+        
+        # Update task yang dipilih dengan status baru, tanggal mulai dan tanggal selesai
         df.loc[df['Task'] == edit_task, 'Status'] = new_status
+        df.loc[df['Task'] == edit_task, 'Start Date'] = new_start_date.strftime('%Y-%m-%d')
+        df.loc[df['Task'] == edit_task, 'End Date'] = new_end_date.strftime('%Y-%m-%d')
+        df.loc[df['Task'] == edit_task, 'Duration (Days)'] = duration
+        
         save_data(df)
-        st.success("Status pekerjaan telah diperbarui!")
+        st.success("Status dan Tanggal pekerjaan telah diperbarui!")
 
     # Menambahkan Fitur untuk menghapus pekerjaan
     if st.button("Hapus Pekerjaan"):
@@ -86,4 +100,3 @@ unfinished_tasks = df[df['Status'] == 'Belum Selesai']
 
 # Menampilkan data pekerjaan yang belum selesai dengan responsif
 st.dataframe(unfinished_tasks, use_container_width=True)
-
