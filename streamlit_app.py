@@ -33,8 +33,11 @@ st.dataframe(df, use_container_width=True)
 # Formulir untuk menambahkan pekerjaan baru
 st.header("Tambah Pekerjaan Baru")
 task = st.text_input("Nama Pekerjaan")
-start_date = st.date_input("Tanggal Mulai", datetime.date.today())
-end_date = st.date_input("Tanggal Selesai", datetime.date.today())
+
+# Menggunakan date_input dengan tanggal default sebagai tanggal saat ini
+start_date = st.date_input("Tanggal Mulai", min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31), key="start_date")
+end_date = st.date_input("Tanggal Selesai", min_value=start_date, max_value=datetime.date(2025, 12, 31), key="end_date")
+
 status = st.selectbox("Status Pekerjaan", ['Belum Selesai', 'Selesai'])
 
 if st.button("Simpan Pekerjaan"):
