@@ -9,25 +9,22 @@ def load_data():
         df = pd.read_csv('work_tracking.csv')
         
         # Mengkonversi kolom tanggal menjadi tipe datetime, dengan penanganan error
-        df['Start Date'] = pd.to_datetime(df['Start Date'], errors='coerce')  # Menggunakan 'coerce' untuk menangani nilai yang salah
-        df['End Date'] = pd.to_datetime(df['End Date'], errors='coerce')  # Sama untuk End Date
+        df['Start Date'] = pd.to_datetime(df['Start Date'], errors='coerce')
+        df['End Date'] = pd.to_datetime(df['End Date'], errors='coerce')
     else:
         # Jika file CSV tidak ada, buat DataFrame kosong dengan kolom yang sesuai
         df = pd.DataFrame(columns=['Task', 'Start Date', 'End Date', 'Duration (Days)', 'Status'])
     return df
 
 def save_data(df):
-    # Pastikan file disimpan di direktori yang benar
     df.to_csv('work_tracking.csv', index=False)
-    
+
 # Judul Aplikasi
 st.title("Aplikasi Tracking Pekerjaan")
 
-# Menampilkan data pekerjaan dengan menggunakan `use_container_width`
+# Menampilkan data pekerjaan dengan responsif
 st.header("Daftar Pekerjaan")
 df = load_data()
-
-# Menampilkan DataFrame dengan opsi responsif
 st.dataframe(df, use_container_width=True)
 
 # Formulir untuk menambahkan pekerjaan baru
@@ -36,18 +33,13 @@ task = st.text_input("Nama Pekerjaan")
 
 # Menggunakan date_input dengan tanggal default sebagai tanggal saat ini
 start_date = st.date_input("Tanggal Mulai", min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31), key="start_date")
-
-# Setelah start_date dipilih, tampilkan end_date dengan rentang yang sesuai
 end_date = st.date_input("Tanggal Selesai", min_value=start_date, max_value=datetime.date(2025, 12, 31), key="end_date")
 
 status = st.selectbox("Status Pekerjaan", ['Belum Selesai', 'Selesai'])
 
 if st.button("Simpan Pekerjaan"):
     if task and start_date and end_date:
-        # Menghitung durasi pekerjaan dalam hari
         duration = (end_date - start_date).days  # durasi dalam hari
-
-        # Menambahkan data pekerjaan baru
         new_task = {
             'Task': task,
             'Start Date': start_date.strftime('%Y-%m-%d'),
@@ -55,10 +47,9 @@ if st.button("Simpan Pekerjaan"):
             'Duration (Days)': duration,
             'Status': status
         }
-
-        new_task_df = pd.DataFrame([new_task])  # Membuat DataFrame baru untuk task
-        df = pd.concat([df, new_task_df], ignore_index=True)  # Menambahkan baris baru ke DataFrame
-        save_data(df)  # Menyimpan data ke CSV
+        new_task_df = pd.DataFrame([new_task])
+        df = pd.concat([df, new_task_df], ignore_index=True)
+        save_data(df)
         st.success("Pekerjaan berhasil ditambahkan!")
     else:
         st.error("Harap isi semua kolom!")
@@ -71,58 +62,16 @@ if edit_task:
     selected_task = df[df['Task'] == edit_task].iloc[0]
     new_status = st.selectbox("Pilih Status Baru", ['Belum Selesai', 'Selesai'], index=['Belum Selesai', 'Selesai'].index(selected_task['Status']))
 
-    # Memeriksa apakah nilai tanggal mulai valid atau NaT
-    if pd.isna(selected_task['Start Date']):
-        new_start_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
-    else:
-        new_start_date = selected_task['Start Date'].date()
+    # Pastikan new_start_date dan new_end_date valid
+    new_start_date = selected_task['Start Date'] if pd.notna(selected_task['Start Date']) else datetime.date.today()
+    new_end_date = selected_task['End Date'] if pd.notna(selected_task['End Date']) else datetime.date.today()
 
-    # Memeriksa apakah nilai tanggal selesai valid atau NaT
-    if pd.isna(selected_task['End Date']):
-        new_end_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
-    else:
-        new_end_date = selected_task['End Date'].date()
-
-    # Memastikan new_end_date bukan None atau NaT, gunakan tanggal hari ini jika None
-    if new_end_date is None or pd.isna(new_end_date):
-        new_end_date = datetime.date.today()
-
-    # Memeriksa apakah nilai tanggal mulai valid atau NaT
-    if pd.isna(selected_task['Start Date']):
-        new_start_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
-    else:
-        new_start_date = selected_task['Start Date'].date()
-
-    # Memeriksa apakah nilai tanggal selesai valid atau NaT
-    if pd.isna(selected_task['End Date']):
-        new_end_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
-    else:
-        new_end_date = selected_task['End Date'].date()
-    
-    # Memastikan new_end_date bukan None atau NaT, gunakan tanggal hari ini jika None
-    if new_end_date is None or pd.isna(new_end_date):
-        new_end_date = datetime.date.today()
-    
-    # Input untuk mengedit tanggal mulai dan selesai
     new_start_date = st.date_input("Edit Tanggal Mulai", value=new_start_date, min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31))
-    
-    # Pastikan new_end_date valid, jika tidak, set nilai default
-    if new_end_date is None or pd.isna(new_end_date):
-        new_end_date = datetime.date.today()
-    
     new_end_date = st.date_input("Edit Tanggal Selesai", value=new_end_date, min_value=new_start_date, max_value=datetime.date(2025, 12, 31))
 
-
     if st.button("Update Status dan Tanggal"):
-        # Menghitung durasi pekerjaan yang telah diperbarui
-        duration = (new_end_date - new_start_date).days  # durasi dalam hari
-        
-        # Update task yang dipilih dengan status baru, tanggal mulai dan tanggal selesai
-        df.loc[df['Task'] == edit_task, 'Status'] = new_status
-        df.loc[df['Task'] == edit_task, 'Start Date'] = new_start_date.strftime('%Y-%m-%d')
-        df.loc[df['Task'] == edit_task, 'End Date'] = new_end_date.strftime('%Y-%m-%d')
-        df.loc[df['Task'] == edit_task, 'Duration (Days)'] = duration
-        
+        duration = (new_end_date - new_start_date).days
+        df.loc[df['Task'] == edit_task, ['Status', 'Start Date', 'End Date', 'Duration (Days)']] = [new_status, new_start_date.strftime('%Y-%m-%d'), new_end_date.strftime('%Y-%m-%d'), duration]
         save_data(df)
         st.success("Status dan Tanggal pekerjaan telah diperbarui!")
 
@@ -135,6 +84,4 @@ if edit_task:
 # Menambahkan Fitur untuk menampilkan pekerjaan yang masih berjalan
 st.header("Pekerjaan yang Belum Selesai")
 unfinished_tasks = df[df['Status'] == 'Belum Selesai']
-
-# Menampilkan data pekerjaan yang belum selesai dengan responsif
 st.dataframe(unfinished_tasks, use_container_width=True)
