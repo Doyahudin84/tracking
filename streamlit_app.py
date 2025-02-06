@@ -27,6 +27,11 @@ st.header("Daftar Pekerjaan")
 df = load_data()
 st.dataframe(df, use_container_width=True)
 
+# Menambahkan Fitur untuk menampilkan pekerjaan yang masih berjalan
+st.header("Pekerjaan yang Belum Selesai")
+unfinished_tasks = df[df['Status'] == 'Belum Selesai']
+st.dataframe(unfinished_tasks, use_container_width=True)
+
 # Formulir untuk menambahkan pekerjaan baru
 st.header("Tambah Pekerjaan Baru")
 task = st.text_input("Nama Pekerjaan")
@@ -81,7 +86,3 @@ if edit_task:
         save_data(df)
         st.success("Pekerjaan telah dihapus!")
 
-# Menambahkan Fitur untuk menampilkan pekerjaan yang masih berjalan
-st.header("Pekerjaan yang Belum Selesai")
-unfinished_tasks = df[df['Status'] == 'Belum Selesai']
-st.dataframe(unfinished_tasks, use_container_width=True)
