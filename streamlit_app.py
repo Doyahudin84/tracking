@@ -7,9 +7,10 @@ import os
 def load_data():
     if os.path.exists('work_tracking.csv'):
         df = pd.read_csv('work_tracking.csv')
-        # Mengkonversi kolom tanggal menjadi tipe datetime
-        df['Start Date'] = pd.to_datetime(df['Start Date'])
-        df['End Date'] = pd.to_datetime(df['End Date'])
+        
+        # Mengkonversi kolom tanggal menjadi tipe datetime, dengan penanganan error
+        df['Start Date'] = pd.to_datetime(df['Start Date'], errors='coerce')  # Menggunakan 'coerce' untuk menangani nilai yang salah
+        df['End Date'] = pd.to_datetime(df['End Date'], errors='coerce')  # Sama untuk End Date
     else:
         # Jika file CSV tidak ada, buat DataFrame kosong dengan kolom yang sesuai
         df = pd.DataFrame(columns=['Task', 'Start Date', 'End Date', 'Duration (Days)', 'Status'])
@@ -28,14 +29,6 @@ df = load_data()
 
 # Menampilkan DataFrame dengan opsi responsif
 st.dataframe(df, use_container_width=True)
-
-# Menambahkan Fitur untuk menampilkan pekerjaan yang masih berjalan
-st.header("Pekerjaan yang Belum Selesai")
-unfinished_tasks = df[df['Status'] == 'Belum Selesai']
-
-# Menampilkan data pekerjaan yang belum selesai dengan responsif
-st.dataframe(unfinished_tasks, use_container_width=True)
-
 
 # Formulir untuk menambahkan pekerjaan baru
 st.header("Tambah Pekerjaan Baru")
@@ -82,3 +75,9 @@ if edit_task:
         save_data(df)
         st.success("Pekerjaan telah dihapus!")
 
+# Menambahkan Fitur untuk menampilkan pekerjaan yang masih berjalan
+st.header("Pekerjaan yang Belum Selesai")
+unfinished_tasks = df[df['Status'] == 'Belum Selesai']
+
+# Menampilkan data pekerjaan yang belum selesai dengan responsif
+st.dataframe(unfinished_tasks, use_container_width=True)
