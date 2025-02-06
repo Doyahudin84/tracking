@@ -87,9 +87,31 @@ if edit_task:
     if new_end_date is None or pd.isna(new_end_date):
         new_end_date = datetime.date.today()
 
-    # Input untuk mengedit tanggal mulai dan selesai
-    new_start_date = st.date_input("Edit Tanggal Mulai", value=new_start_date, min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31))
-    new_end_date = st.date_input("Edit Tanggal Selesai", value=new_end_date, min_value=new_start_date, max_value=datetime.date(2025, 12, 31))
+    # Memeriksa apakah nilai tanggal mulai valid atau NaT
+if pd.isna(selected_task['Start Date']):
+    new_start_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
+else:
+    new_start_date = selected_task['Start Date'].date()
+
+# Memeriksa apakah nilai tanggal selesai valid atau NaT
+if pd.isna(selected_task['End Date']):
+    new_end_date = datetime.date.today()  # Menetapkan tanggal default jika NaT
+else:
+    new_end_date = selected_task['End Date'].date()
+
+# Memastikan new_end_date bukan None atau NaT, gunakan tanggal hari ini jika None
+if new_end_date is None or pd.isna(new_end_date):
+    new_end_date = datetime.date.today()
+
+# Input untuk mengedit tanggal mulai dan selesai
+new_start_date = st.date_input("Edit Tanggal Mulai", value=new_start_date, min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31))
+
+# Pastikan new_end_date valid, jika tidak, set nilai default
+if new_end_date is None or pd.isna(new_end_date):
+    new_end_date = datetime.date.today()
+
+new_end_date = st.date_input("Edit Tanggal Selesai", value=new_end_date, min_value=new_start_date, max_value=datetime.date(2025, 12, 31))
+
 
     if st.button("Update Status dan Tanggal"):
         # Menghitung durasi pekerjaan yang telah diperbarui
