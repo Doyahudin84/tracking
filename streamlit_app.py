@@ -83,6 +83,10 @@ if edit_task:
     else:
         new_end_date = selected_task['End Date'].date()
 
+    # Pastikan new_end_date memiliki nilai valid
+    if new_end_date is None:
+        new_end_date = datetime.date.today()
+
     # Input untuk mengedit tanggal mulai dan selesai
     new_start_date = st.date_input("Edit Tanggal Mulai", value=new_start_date, min_value=datetime.date(2020, 1, 1), max_value=datetime.date(2025, 12, 31))
     new_end_date = st.date_input("Edit Tanggal Selesai", value=new_end_date, min_value=new_start_date, max_value=datetime.date(2025, 12, 31))
