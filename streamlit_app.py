@@ -1,6 +1,13 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+from datetime import datetime
+
+# Mendapatkan bulan sekarang
+current_month = datetime.now().strftime('%B')  # Mengambil nama bulan (misal: "March")
+
+# Menampilkan bulan sekarang dengan nama bulan dalam bold dan ukuran heading
+st.markdown(f"### **Bulan sekarang adalah: {current_month}**")
 
 # Membuat koneksi ke database SQLite
 conn = sqlite3.connect('project_plans.db')
